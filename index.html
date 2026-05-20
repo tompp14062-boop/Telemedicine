@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/main.css">
+    <title>การสร้าง CRUD เบื้องต้น</title>
+</head>
+<body>
+    <div>
+        <form onsubmit="event.preventDefault();FormSubmit();" autocomplete="off">
+            <div>
+                <label>ชื่อ-สกุล : </label>
+                <input type="text" name="txtFullName" id="txtFullName" required>
+            </div>
+            <div>
+                <label>ที่อยู่ : </label>
+                <input type="text" name="txtAddress" id="txtAddress" required>
+            </div>
+            <div>
+                <label>เงินเดือน : </label>
+                <input type="number" name="txtSalary" id="txtSalary" required>
+            </div><hr />
+            <div>
+                <input type="submit" value="บันทึก">
+            </div>
+        </form>
+    </div><br />
+    <div>
+        <table id="tblHuman" border="1">
+            <thead>
+                <tr>
+                    <th>ชื่อ-สกุล</th>
+                    <th>ที่อยู่</th>
+                    <th>เงินเดือน</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                        
+            </tbody>
+        </table>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
