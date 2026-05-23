@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleMed — วิดีโอคอล</title>
+<link rel="stylesheet" href="css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <span class="loader-text">กำลังเชื่อมต่อ...</span>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-icon">🏥</div>
+      <h2>TeleMed</h2>
+      <p>ระบบแพทย์ออนไลน์</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">เมนูหลัก</div>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="appointment.html" class="nav-link"><span class="nav-icon">📅</span> นัดหมายแพทย์</a>
+      <a href="videocall.html" class="nav-link active"><span class="nav-icon">📹</span> วิดีโอคอล</a>
+      <div class="nav-section" style="margin-top:8px">ระบบ</div>
+      <a class="nav-link" onclick="logout()"><span class="nav-icon">🚪</span> ออกจากระบบ</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="user-initial">?</div>
+        <div class="user-info">
+          <strong id="user-name">กำลังโหลด...</strong>
+          <span id="user-role">—</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content" style="padding-bottom:0">
+
+    <div class="page-header flex justify-between items-center">
+      <div>
+        <h1>📹 วิดีโอคอล</h1>
+        <p id="room-label">ห้องปรึกษา: <code id="room-display">—</code></p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-ghost btn-sm" onclick="copyRoomLink()">🔗 คัดลอกลิงก์ห้อง</button>
+        <button class="btn btn-danger btn-sm" onclick="endCall()">📵 สิ้นสุดการโทร</button>
+      </div>
+    </div>
+
+    <div class="videocall-grid">
+
+      <!-- Video -->
+      <div class="video-container" id="video-box">
+        <div class="video-placeholder" id="video-placeholder">
+          <div class="big-icon">📹</div>
+          <p style="font-size:1.1rem;color:rgba(255,255,255,0.7)">กำลังโหลด Jitsi Meet...</p>
+          <p style="font-size:0.8rem;color:rgba(255,255,255,0.4)">อนุญาตการใช้กล้องและไมโครโฟนของคุณ</p>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-status"></div>
+          💬 แชทสด
+          <span id="chat-room-tag" style="margin-left:auto;font-size:0.72rem;color:var(--text-muted);font-weight:400"></span>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <div style="text-align:center;color:#b0bac8;padding:30px;font-size:0.85rem">
+            ส่งข้อความเพื่อเริ่มการสนทนา
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" id="msg" class="form-control" placeholder="พิมพ์ข้อความ..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}">
+          <button class="btn btn-primary btn-sm" onclick="sendMessage()" style="padding:9px 14px">➤</button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+
+let roomId = '';
+let myName = '';
+let myRole = '';
+let channel = null;
+
+function showLoading(msg) {
+  document.querySelector('#loading-overlay .loader-text').textContent = msg || 'กำลังดำเนินการ...';
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
+
+function formatTime(d) {
+  return new Date(d).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+}
+
+function renderMessage(msg, isSent) {
+  const div = document.createElement('div');
+  div.className = 'flex flex-col';
+  div.style.alignItems = isSent ? 'flex-end' : 'flex-start';
+
+  div.innerHTML = `
+    ${!isSent ? `<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:2px;padding-left:4px">${msg.sender_name || 'ไม่ทราบชื่อ'}</div>` : ''}
+    <div class="msg-bubble ${isSent ? 'sent' : 'received'}">
+      ${msg.message}
+      <div class="msg-meta">${formatTime(msg.created_at)}</div>
+    </div>
+  `;
+  return div;
+}
+
+function scrollToBottom() {
+  const el = document.getElementById('chat-messages');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadMessages() {
+  const { data } = await client
+    .from('messages')
+    .select('*')
+    .eq('room_id', roomId)
+    .order('created_at', { ascending: true });
+
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+
+  if (!data || !data.length) {
+    container.innerHTML = `<div style="text-align:center;color:#b0bac8;padding:30px;font-size:0.85rem">ส่งข้อความเพื่อเริ่มการสนทนา</div>`;
+    return;
+  }
+
+  data.forEach(msg => {
+    const isSent = msg.sender_name === myName;
+    container.appendChild(renderMessage(msg, isSent));
+  });
+  scrollToBottom();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msg');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  const { error } = await client.from('messages').insert([{
+    room_id: roomId,
+    sender_name: myName,
+    sender_role: myRole,
+    message: msg
+  }]);
+
+  if (error) {
+    Swal.fire({ icon:'error', title:'ส่งไม่สำเร็จ', text: error.message, confirmButtonColor:'#0a7ea4' });
+  }
+}
+
+function subscribeToChat() {
+  channel = client
+    .channel(`room-${roomId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `room_id=eq.${roomId}`
+    }, payload => {
+      const msg = payload.new;
+      const isSent = msg.sender_name === myName;
+      const container = document.getElementById('chat-messages');
+
+      // Remove placeholder
+      const ph = container.querySelector('div[style*="text-align:center"]');
+      if (ph) ph.remove();
+
+      container.appendChild(renderMessage(msg, isSent));
+      scrollToBottom();
+    })
+    .subscribe();
+}
+
+function loadVideo() {
+  const box = document.getElementById('video-box');
+  const ph = document.getElementById('video-placeholder');
+
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://meet.jit.si/telemed-${roomId}`;
+  iframe.allow = 'camera; microphone; fullscreen; display-capture';
+  iframe.style.cssText = 'width:100%;height:100%;border:none';
+  iframe.onload = () => ph && ph.remove();
+
+  box.appendChild(iframe);
+  document.getElementById('room-display').textContent = `telemed-${roomId}`;
+  document.getElementById('chat-room-tag').textContent = roomId;
+}
+
+async function copyRoomLink() {
+  const link = `https://meet.jit.si/telemed-${roomId}`;
+  await navigator.clipboard.writeText(link);
+  Swal.fire({ icon:'success', title:'คัดลอกแล้ว!', text: link, timer:1500, showConfirmButton:false });
+}
+
+async function endCall() {
+  const result = await Swal.fire({
+    icon: 'warning',
+    title: 'สิ้นสุดการโทร?',
+    showCancelButton: true,
+    confirmButtonText: 'สิ้นสุด',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#e53e5a'
+  });
+  if (!result.isConfirmed) return;
+
+  if (channel) channel.unsubscribe();
+  window.location.href = 'dashboard.html';
+}
+
+async function logout() {
+  await client.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+(async () => {
+  showLoading('กำลังเชื่อมต่อห้อง...');
+  const session = await requireAuth();
+  if (!session) return;
+
+  const profile = await getProfile(session.user.id);
+  myName = profile?.full_name || session.user.email;
+  myRole = profile?.role || 'patient';
+
+  document.getElementById('user-name').textContent = myName;
+  document.getElementById('user-role').textContent = myRole === 'doctor' ? '👨‍⚕️ แพทย์' : '🧑 ผู้ป่วย';
+  document.getElementById('user-initial').textContent = myName.charAt(0).toUpperCase();
+
+  // Get room from URL param or fallback
+  const params = new URLSearchParams(window.location.search);
+  roomId = params.get('room') || 'default';
+
+  hideLoading();
+  loadVideo();
+  await loadMessages();
+  subscribeToChat();
+})();
+</script>
+</body>
+</html>

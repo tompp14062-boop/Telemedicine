@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleMed — เข้าสู่ระบบ</title>
+<link rel="stylesheet" href="css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <span class="loader-text">กำลังเข้าสู่ระบบ...</span>
+</div>
+
+<div class="login-page">
+
+  <!-- Hero Side -->
+  <div class="login-hero">
+    <div class="hero-content">
+      <div class="hero-logo">🏥</div>
+      <h1>TeleMed<br>ระบบแพทย์ออนไลน์</h1>
+      <p>พบแพทย์ผู้เชี่ยวชาญได้ทุกที่ทุกเวลา ด้วยระบบ Telemedicine ที่ทันสมัยและปลอดภัย</p>
+      <div class="hero-features">
+        <div class="hero-feature">
+          <div class="feat-icon">📹</div>
+          <span>วิดีโอคอลความคมชัดสูง</span>
+        </div>
+        <div class="hero-feature">
+          <div class="feat-icon">📅</div>
+          <span>นัดหมายแพทย์ได้ทันที</span>
+        </div>
+        <div class="hero-feature">
+          <div class="feat-icon">💬</div>
+          <span>แชทสดกับแพทย์</span>
+        </div>
+        <div class="hero-feature">
+          <div class="feat-icon">🔒</div>
+          <span>ข้อมูลส่วนตัวปลอดภัย 100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Side -->
+  <div class="login-form-side">
+    <div class="login-box">
+      <h2>ยินดีต้อนรับ</h2>
+      <p>เข้าสู่ระบบเพื่อใช้งาน TeleMed</p>
+
+      <!-- Tab Toggle -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('login')">เข้าสู่ระบบ</button>
+        <button class="tab-btn" onclick="switchTab('register')">สมัครสมาชิก</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="tab-login">
+        <div class="form-group">
+          <label class="form-label">อีเมล</label>
+          <input type="email" id="login-email" class="form-control" placeholder="doctor@hospital.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">รหัสผ่าน</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') login()">
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" onclick="login()">
+          🔐 &nbsp;เข้าสู่ระบบ
+        </button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="tab-register" style="display:none">
+        <div class="form-group">
+          <label class="form-label">ชื่อ-นามสกุล</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="นพ.สมชาย ใจดี">
+        </div>
+        <div class="form-group">
+          <label class="form-label">บทบาท</label>
+          <select id="reg-role" class="form-control">
+            <option value="patient">ผู้ป่วย</option>
+            <option value="doctor">แพทย์</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">อีเมล</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">รหัสผ่าน</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร">
+        </div>
+        <button class="btn btn-accent btn-block btn-lg" onclick="register()">
+          ✨ &nbsp;สมัครสมาชิก
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+
+// Tab switching
+function switchTab(tab) {
+  document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0) === (tab === 'login'));
+  });
+}
+
+function showLoading(msg = 'กำลังดำเนินการ...') {
+  document.querySelector('#loading-overlay .loader-text').textContent = msg;
+  document.getElementById('loading-overlay').classList.add('show');
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('show');
+}
+
+// Check if already logged in
+(async () => {
+  const session = await getSession();
+  if (session) window.location.href = 'dashboard.html';
+})();
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    Swal.fire({ icon:'warning', title:'กรอกข้อมูลให้ครบ', text:'กรุณากรอกอีเมลและรหัสผ่าน', confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  showLoading('กำลังเข้าสู่ระบบ...');
+
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  hideLoading();
+
+  if (error) {
+    Swal.fire({ icon:'error', title:'เข้าสู่ระบบไม่สำเร็จ', text: error.message, confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  await Swal.fire({ icon:'success', title:'เข้าสู่ระบบสำเร็จ', text:'ยินดีต้อนรับสู่ TeleMed', timer:1200, showConfirmButton:false });
+  window.location.href = 'dashboard.html';
+}
+
+async function register() {
+  const name = document.getElementById('reg-name').value.trim();
+  const role = document.getElementById('reg-role').value;
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!name || !email || !password) {
+    Swal.fire({ icon:'warning', title:'กรอกข้อมูลให้ครบ', confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  showLoading('กำลังสร้างบัญชี...');
+
+  const { error } = await client.auth.signUp({
+    email, password,
+    options: { data: { full_name: name, role } }
+  });
+
+  hideLoading();
+
+  if (error) {
+    Swal.fire({ icon:'error', title:'สมัครไม่สำเร็จ', text: error.message, confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  Swal.fire({
+    icon: 'success',
+    title: 'สมัครสมาชิกสำเร็จ',
+    text: 'กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ',
+    confirmButtonColor: '#0a7ea4'
+  });
+  switchTab('login');
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeleMed — นัดหมายแพทย์</title>
+<link rel="stylesheet" href="css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <span class="loader-text">กำลังบันทึก...</span>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-icon">🏥</div>
+      <h2>TeleMed</h2>
+      <p>ระบบแพทย์ออนไลน์</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">เมนูหลัก</div>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="appointment.html" class="nav-link active"><span class="nav-icon">📅</span> นัดหมายแพทย์</a>
+      <a href="videocall.html" class="nav-link"><span class="nav-icon">📹</span> วิดีโอคอล</a>
+      <div class="nav-section" style="margin-top:8px">ระบบ</div>
+      <a class="nav-link" onclick="logout()"><span class="nav-icon">🚪</span> ออกจากระบบ</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="user-initial">?</div>
+        <div class="user-info">
+          <strong id="user-name">กำลังโหลด...</strong>
+          <span id="user-role">—</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>📅 นัดหมายแพทย์</h1>
+      <p>กรอกข้อมูลเพื่อทำนัดหมายกับแพทย์ผู้เชี่ยวชาญ</p>
+    </div>
+
+    <div class="grid-2" style="align-items:start">
+
+      <!-- Form -->
+      <div class="card">
+        <div class="card-header">
+          <h3>ข้อมูลการนัดหมาย</h3>
+        </div>
+        <div class="card-body">
+
+          <div class="appointment-form-grid">
+            <div class="form-group">
+              <label class="form-label">ชื่อผู้ป่วย</label>
+              <input type="text" id="patient_name" class="form-control" placeholder="ชื่อ-นามสกุล">
+            </div>
+            <div class="form-group">
+              <label class="form-label">เบอร์โทรศัพท์</label>
+              <input type="tel" id="phone" class="form-control" placeholder="08X-XXX-XXXX">
+            </div>
+            <div class="form-group">
+              <label class="form-label">แพทย์ผู้ดูแล</label>
+              <select id="doctor_name" class="form-control">
+                <option value="">— เลือกแพทย์ —</option>
+                <option value="นพ.สมชาย ใจดี">นพ.สมชาย ใจดี (อายุรศาสตร์)</option>
+                <option value="พญ.วิภาวดี มงคล">พญ.วิภาวดี มงคล (กุมารเวช)</option>
+                <option value="นพ.ปิยะ รักษา">นพ.ปิยะ รักษา (ศัลยกรรม)</option>
+                <option value="พญ.สุดา เจริญ">พญ.สุดา เจริญ (จิตเวช)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ประเภทการปรึกษา</label>
+              <select id="consult_type" class="form-control">
+                <option value="ตรวจทั่วไป">ตรวจทั่วไป</option>
+                <option value="ติดตามอาการ">ติดตามอาการ</option>
+                <option value="ปรึกษาผล Lab">ปรึกษาผล Lab</option>
+                <option value="ฉุกเฉิน">ฉุกเฉิน</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">วันและเวลานัดหมาย</label>
+              <input type="datetime-local" id="scheduled_at" class="form-control">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">อาการเบื้องต้น / หมายเหตุ</label>
+              <textarea id="notes" class="form-control" rows="3" placeholder="อธิบายอาการหรือความต้องการเพิ่มเติม..." style="resize:vertical"></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block btn-lg" onclick="saveAppointment()" style="margin-top:8px">
+            📅 &nbsp;ยืนยันการนัดหมาย
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Info Panel -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+
+        <div class="card">
+          <div class="card-header"><h3>📋 รายการนัดหมายล่าสุด</h3></div>
+          <div id="recent-list" style="padding:16px">
+            <p style="color:#b0bac8;text-align:center;padding:20px">กำลังโหลด...</p>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg,#0a7ea4,#00c2a8);border:none;color:#fff">
+          <div class="card-body">
+            <div style="font-size:2rem;margin-bottom:8px">💡</div>
+            <h3 style="color:#fff;font-size:1.1rem;margin-bottom:8px">เคล็ดลับการนัดหมาย</h3>
+            <p style="font-size:0.85rem;opacity:0.85;line-height:1.7">
+              • เตรียมเวลาว่างสำหรับการรอออนไลน์<br>
+              • ทดสอบกล้องและไมค์ก่อนเวลานัด<br>
+              • อยู่ในที่ที่มีแสงสว่างเพียงพอ<br>
+              • มีรายการยาที่ใช้อยู่พร้อม
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+
+function showLoading(msg) {
+  document.querySelector('#loading-overlay .loader-text').textContent = msg || 'กำลังดำเนินการ...';
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('show'); }
+
+// Set min datetime to now
+document.getElementById('scheduled_at').min = new Date().toISOString().slice(0,16);
+
+async function saveAppointment() {
+  const patient_name = document.getElementById('patient_name').value.trim();
+  const doctor_name = document.getElementById('doctor_name').value;
+  const scheduled_at = document.getElementById('scheduled_at').value;
+  const notes = document.getElementById('notes').value.trim();
+  const consult_type = document.getElementById('consult_type').value;
+
+  if (!patient_name || !doctor_name || !scheduled_at) {
+    Swal.fire({ icon:'warning', title:'กรอกข้อมูลให้ครบ', text:'กรุณากรอกชื่อผู้ป่วย แพทย์ และวันเวลานัดหมาย', confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  const result = await Swal.fire({
+    icon: 'question',
+    title: 'ยืนยันการนัดหมาย?',
+    html: `<b>${patient_name}</b><br>พบ ${doctor_name}<br>${new Date(scheduled_at).toLocaleString('th-TH')}`,
+    showCancelButton: true,
+    confirmButtonText: 'ยืนยัน',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#0a7ea4'
+  });
+
+  if (!result.isConfirmed) return;
+
+  showLoading('กำลังบันทึกนัดหมาย...');
+
+  const room_id = 'room-' + Math.random().toString(36).slice(2,10);
+
+  const { error } = await client.from('appointments').insert([{
+    patient_name,
+    doctor_name,
+    scheduled_at,
+    notes: `[${consult_type}] ${notes}`,
+    status: 'pending',
+    room_id
+  }]);
+
+  hideLoading();
+
+  if (error) {
+    Swal.fire({ icon:'error', title:'บันทึกไม่สำเร็จ', text: error.message, confirmButtonColor:'#0a7ea4' });
+    return;
+  }
+
+  await Swal.fire({
+    icon: 'success',
+    title: 'นัดหมายสำเร็จ! 🎉',
+    html: `<p>นัดหมายของคุณได้รับการบันทึกแล้ว</p><p style="color:#6b7a90;font-size:0.85rem;margin-top:8px">รหัสห้อง: <code>${room_id}</code></p>`,
+    confirmButtonColor: '#0a7ea4'
+  });
+
+  // Reset form
+  ['patient_name','phone','notes','scheduled_at'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('doctor_name').value = '';
+  loadRecent();
+}
+
+async function loadRecent() {
+  const { data } = await client.from('appointments').select('*').order('created_at', { ascending:false }).limit(5);
+  const el = document.getElementById('recent-list');
+  if (!data || !data.length) {
+    el.innerHTML = `<p style="color:#b0bac8;text-align:center;padding:20px">ยังไม่มีนัดหมาย</p>`;
+    return;
+  }
+  el.innerHTML = data.map(r => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">👤</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:0.875rem">${r.patient_name}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">${r.doctor_name} · ${new Date(r.scheduled_at).toLocaleDateString('th-TH')}</div>
+      </div>
+      <span class="badge badge-${r.status}">${{pending:'⏳',confirmed:'✅',completed:'🏁',cancelled:'❌'}[r.status]||''}</span>
+    </div>
+  `).join('');
+}
+
+async function logout() {
+  await client.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+(async () => {
+  const session = await requireAuth();
+  if (!session) return;
+  const profile = await getProfile(session.user.id);
+  const name = profile?.full_name || session.user.email;
+  document.getElementById('user-name').textContent = name;
+  document.getElementById('user-role').textContent = profile?.role === 'doctor' ? '👨‍⚕️ แพทย์' : '🧑 ผู้ป่วย';
+  document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
+  loadRecent();
+})();
+</script>
+</body>
+</html>
