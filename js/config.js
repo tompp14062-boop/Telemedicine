@@ -3,7 +3,7 @@
 // =============================================
 
 const SUPABASE_URL = ''https://iavmvhusigygilxieacu.supabase.co';
-const SUPABASE_ANON_KEY = 'ap-northeast-1';
+const SUPABASE_ANON_KEY = 'sb_publishable_22k37yqbqRt5UjAo10NWCQ_YDo22OSR';
 
 const { createClient } = supabase;
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
