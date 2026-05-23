@@ -1,5 +1,5 @@
 var SUPABASE_URL = 'https://iavmvhusigygilxieacu.supabase.co'
-var SUPABASE_ANON_KEY = 'sb_publishable_22k37yqbqRt5UjAo10NWCQ_YDo22OSR'
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlhdm12aHVzaWd5Z2lseGllYWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODY4NDYsImV4cCI6MjA5NDg2Mjg0Nn0.oU1WaWXuoexz1WYLJUazV3C4MP530qsSEUbQl_0cVjo'
 var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 function getSession() {
