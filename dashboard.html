@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>TeleMed — Dashboard</title>
 <link rel="stylesheet" href="css/main.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -10,40 +10,29 @@
 </head>
 <body>
 
-<!-- Loading Overlay -->
 <div id="loading-overlay">
   <div class="loader-ring"></div>
   <span class="loader-text">กำลังโหลดข้อมูล...</span>
 </div>
 
-<div class="layout">
+<button class="mobile-nav-toggle" onclick="toggleSidebar()" id="nav-toggle">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="logo-icon">🏥</div>
       <h2>TeleMed</h2>
       <p>ระบบแพทย์ออนไลน์</p>
     </div>
-
     <nav class="sidebar-nav">
       <div class="nav-section">เมนูหลัก</div>
-      <a href="dashboard.html" class="nav-link active">
-        <span class="nav-icon">📊</span> Dashboard
-      </a>
-      <a href="appointment.html" class="nav-link">
-        <span class="nav-icon">📅</span> นัดหมายแพทย์
-      </a>
-      <a href="videocall.html" class="nav-link">
-        <span class="nav-icon">📹</span> วิดีโอคอล
-      </a>
-
+      <a href="dashboard.html" class="nav-link active" onclick="closeSidebar()"><span class="nav-icon">📊</span> Dashboard</a>
+      <a href="appointment.html" class="nav-link" onclick="closeSidebar()"><span class="nav-icon">📅</span> นัดหมายแพทย์</a>
+      <a href="videocall.html" class="nav-link" onclick="closeSidebar()"><span class="nav-icon">📹</span> วิดีโอคอล</a>
       <div class="nav-section" style="margin-top:8px">ระบบ</div>
-      <a class="nav-link" onclick="logout()">
-        <span class="nav-icon">🚪</span> ออกจากระบบ
-      </a>
+      <a class="nav-link" onclick="logout()"><span class="nav-icon">🚪</span> ออกจากระบบ</a>
     </nav>
-
     <div class="sidebar-footer">
       <div class="user-card">
         <div class="user-avatar" id="user-initial">?</div>
@@ -55,19 +44,15 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <div class="page-header flex justify-between items-center">
+    <div class="page-header">
       <div>
         <h1>Dashboard</h1>
-        <p>ภาพรวมระบบ Telemedicine ทั้งหมด</p>
+        <p>ภาพรวมระบบ Telemedicine</p>
       </div>
-      <a href="appointment.html" class="btn btn-primary">
-        + &nbsp;นัดหมายใหม่
-      </a>
+      <a href="appointment.html" class="btn btn-primary">+ นัดหมายใหม่</a>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card primary">
         <div class="stat-icon">📅</div>
@@ -91,11 +76,10 @@
       </div>
     </div>
 
-    <!-- Appointments Table -->
     <div class="card">
       <div class="card-header">
         <h3>รายการนัดหมาย</h3>
-        <div class="flex gap-2">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <select id="filter-status" class="form-control" style="width:auto;padding:6px 10px;font-size:0.8rem" onchange="loadData()">
             <option value="">ทุกสถานะ</option>
             <option value="pending">รอดำเนินการ</option>
@@ -103,7 +87,7 @@
             <option value="completed">เสร็จสิ้น</option>
             <option value="cancelled">ยกเลิก</option>
           </select>
-          <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 รีเฟรช</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -112,154 +96,106 @@
             <tr>
               <th>ผู้ป่วย</th>
               <th>แพทย์</th>
-              <th>วันนัดหมาย</th>
+              <th>วันนัด</th>
               <th>สถานะ</th>
-              <th>การจัดการ</th>
+              <th>จัดการ</th>
             </tr>
           </thead>
           <tbody id="tb">
-            <tr><td colspan="5" style="text-align:center;color:#b0bac8;padding:40px">กำลังโหลด...</td></tr>
+            <tr><td colspan="5" style="text-align:center;color:#b0bac8;padding:32px">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
   </main>
 </div>
 
 <script src="js/config.js"></script>
 <script>
-
-function showLoading(msg = 'กำลังโหลด...') {
-  document.querySelector('#loading-overlay .loader-text').textContent = msg;
-  document.getElementById('loading-overlay').classList.add('show');
+function toggleSidebar() {
+  const s=document.getElementById('sidebar'),o=document.getElementById('sidebar-overlay'),t=document.getElementById('nav-toggle');
+  const open=s.classList.toggle('open'); o.classList.toggle('show',open); t.textContent=open?'✕':'☰';
 }
-function hideLoading() {
-  document.getElementById('loading-overlay').classList.remove('show');
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+  document.getElementById('nav-toggle').textContent='☰';
 }
+function showLoading(msg){document.querySelector('#loading-overlay .loader-text').textContent=msg||'กำลังโหลด...';document.getElementById('loading-overlay').classList.add('show');}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show');}
 
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleString('th-TH', { dateStyle:'medium', timeStyle:'short' });
-}
+function formatDate(d){if(!d)return'—';return new Date(d).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});}
+function statusBadge(s){const m={pending:['badge-pending','⏳ รอ'],confirmed:['badge-confirmed','✅ ยืนยัน'],completed:['badge-completed','🏁 เสร็จ'],cancelled:['badge-cancelled','❌ ยกเลิก']};const[c,l]=m[s]||['badge-pending',s];return`<span class="badge ${c}">${l}</span>`;}
 
-function statusBadge(status) {
-  const map = {
-    pending: ['badge-pending','⏳ รอดำเนินการ'],
-    confirmed: ['badge-confirmed','✅ ยืนยัน'],
-    completed: ['badge-completed','🏁 เสร็จสิ้น'],
-    cancelled: ['badge-cancelled','❌ ยกเลิก'],
-  };
-  const [cls, label] = map[status] || ['badge-pending', status];
-  return `<span class="badge ${cls}">${label}</span>`;
-}
-
-async function loadData() {
-  showLoading('กำลังโหลดข้อมูล...');
-  const filterStatus = document.getElementById('filter-status').value;
-
-  let query = client.from('appointments').select('*').order('scheduled_at', { ascending: true });
-  if (filterStatus) query = query.eq('status', filterStatus);
-
-  const { data, error } = await query;
+async function loadData(){
+  showLoading('กำลังโหลด...');
+  const f=document.getElementById('filter-status').value;
+  let q=client.from('appointments').select('*').order('scheduled_at',{ascending:true});
+  if(f)q=q.eq('status',f);
+  const{data,error}=await q;
   hideLoading();
-
-  if (error) {
-    Swal.fire({ icon:'error', title:'โหลดข้อมูลไม่สำเร็จ', text: error.message, confirmButtonColor:'#0a7ea4' });
-    return;
-  }
-
-  // Stats
-  const all = data.length;
-  const confirmed = data.filter(d => d.status === 'confirmed').length;
-  const pending = data.filter(d => d.status === 'pending').length;
-  const completed = data.filter(d => d.status === 'completed').length;
-  document.getElementById('stat-total').textContent = all;
-  document.getElementById('stat-confirmed').textContent = confirmed;
-  document.getElementById('stat-pending').textContent = pending;
-  document.getElementById('stat-completed').textContent = completed;
-
-  const tb = document.getElementById('tb');
-  if (!data.length) {
-    tb.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#b0bac8;padding:40px">ยังไม่มีนัดหมาย</td></tr>`;
-    return;
-  }
-
-  tb.innerHTML = data.map(row => `
-    <tr>
-      <td><strong>${row.patient_name || '—'}</strong></td>
-      <td>${row.doctor_name || '—'}</td>
-      <td>${formatDate(row.scheduled_at)}</td>
-      <td>${statusBadge(row.status)}</td>
-      <td>
-        <div class="flex gap-2">
-          <button class="btn btn-sm btn-ghost" onclick="changeStatus('${row.id}','confirmed')">✅ ยืนยัน</button>
-          <button class="btn btn-sm btn-accent" onclick="openVideoCall('${row.room_id}')">📹 เข้าห้อง</button>
-          <button class="btn btn-sm btn-danger" onclick="changeStatus('${row.id}','cancelled')">❌</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  if(error){Swal.fire({icon:'error',title:'โหลดไม่สำเร็จ',text:error.message,confirmButtonColor:'#0a7ea4'});return;}
+  document.getElementById('stat-total').textContent=data.length;
+  document.getElementById('stat-confirmed').textContent=data.filter(d=>d.status==='confirmed').length;
+  document.getElementById('stat-pending').textContent=data.filter(d=>d.status==='pending').length;
+  document.getElementById('stat-completed').textContent=data.filter(d=>d.status==='completed').length;
+  const tb=document.getElementById('tb');
+  if(!data.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:#b0bac8;padding:32px">ยังไม่มีนัดหมาย</td></tr>`;return;}
+  tb.innerHTML=data.map(r=>`<tr>
+    <td><strong>${r.patient_name||'—'}</strong></td>
+    <td style="font-size:0.82rem">${r.doctor_name||'—'}</td>
+    <td style="font-size:0.82rem;white-space:nowrap">${formatDate(r.scheduled_at)}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-ghost" onclick="changeStatus('${r.id}','confirmed')" title="ยืนยัน">✅</button>
+        <button class="btn btn-sm btn-accent" onclick="openVideo('${r.room_id}')" title="เข้าห้อง">📹</button>
+        <button class="btn btn-sm btn-danger" onclick="changeStatus('${r.id}','cancelled')" title="ยกเลิก">❌</button>
+      </div>
+    </td>
+  </tr>`).join('');
 }
 
-async function changeStatus(id, status) {
-  const label = { confirmed:'ยืนยัน', cancelled:'ยกเลิก', completed:'เสร็จสิ้น' }[status];
-  const result = await Swal.fire({
-    icon: 'question',
-    title: `${label}นัดหมายนี้?`,
-    showCancelButton: true,
-    confirmButtonText: 'ยืนยัน',
-    cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#0a7ea4'
-  });
-  if (!result.isConfirmed) return;
-
+async function changeStatus(id,status){
+  const label={confirmed:'ยืนยัน',cancelled:'ยกเลิก',completed:'เสร็จสิ้น'}[status];
+  const r=await Swal.fire({icon:'question',title:`${label}นัดหมายนี้?`,showCancelButton:true,confirmButtonText:'ยืนยัน',cancelButtonText:'ยกเลิก',confirmButtonColor:'#0a7ea4'});
+  if(!r.isConfirmed)return;
   showLoading('กำลังอัปเดต...');
-  const { error } = await client.from('appointments').update({ status }).eq('id', id);
+  const{error}=await client.from('appointments').update({status}).eq('id',id);
   hideLoading();
-
-  if (error) {
-    Swal.fire({ icon:'error', title:'เกิดข้อผิดพลาด', text: error.message, confirmButtonColor:'#0a7ea4' });
-    return;
-  }
-  Swal.fire({ icon:'success', title:'อัปเดตสำเร็จ', timer:900, showConfirmButton:false });
+  if(error){Swal.fire({icon:'error',title:'เกิดข้อผิดพลาด',text:error.message,confirmButtonColor:'#0a7ea4'});return;}
+  Swal.fire({icon:'success',title:'อัปเดตสำเร็จ',timer:800,showConfirmButton:false});
   loadData();
 }
 
-function openVideoCall(roomId) {
-  const room = roomId || 'room-default';
-  window.open(`videocall.html?room=${room}`, '_blank');
-}
+function openVideo(roomId){window.open(`videocall.html?room=${roomId||'default'}`);}
 
-async function logout() {
-  const result = await Swal.fire({
-    icon: 'question',
-    title: 'ออกจากระบบ?',
-    showCancelButton: true,
-    confirmButtonText: 'ออกจากระบบ',
-    cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#e53e5a'
-  });
-  if (!result.isConfirmed) return;
+async function logout(){
+  const r=await Swal.fire({icon:'question',title:'ออกจากระบบ?',showCancelButton:true,confirmButtonText:'ออก',cancelButtonText:'ยกเลิก',confirmButtonColor:'#e53e5a'});
+  if(!r.isConfirmed)return;
   await client.auth.signOut();
-  window.location.href = 'login.html';
+  window.location.href='login.html';
 }
 
-// Init
-(async () => {
-  const session = await requireAuth();
-  if (!session) return;
-
-  const profile = await getProfile(session.user.id);
-  const name = profile?.full_name || session.user.email;
-  const role = profile?.role === 'doctor' ? '👨‍⚕️ แพทย์' : '🧑 ผู้ป่วย';
-
-  document.getElementById('user-name').textContent = name;
-  document.getElementById('user-role').textContent = role;
-  document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
-
+(async()=>{
+  const session=await requireAuth(); if(!session)return;
+  const profile=await getProfile(session.user.id);
+  const name=profile?.full_name||session.user.email;
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('user-role').textContent=profile?.role==='doctor'?'👨‍⚕️ แพทย์':'🧑 ผู้ป่วย';
+  document.getElementById('user-initial').textContent=name.charAt(0).toUpperCase();
   loadData();
 })();
+</script>
+<script>
+function toggleSidebar(){
+  document.querySelector(".sidebar").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.querySelector(".sidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
 </script>
 </body>
 </html>
