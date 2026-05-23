@@ -1,19 +1,19 @@
-const SUPABASE_URL = 'https://iavmvhusigygilxieacu.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_22k37yqbqRt5UjAo10NWCQ_YDo22OSR'
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+var SUPABASE_URL = 'https://iavmvhusigygilxieacu.supabase.co'
+var SUPABASE_ANON_KEY = 'sb_publishable_22k37yqbqRt5UjAo10NWCQ_YDo22OSR'
+var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-async function getSession() {
-  const { data } = await client.auth.getSession()
-  return data?.session ?? null
+function getSession() {
+  return client.auth.getSession().then(function(r){ return r.data.session || null })
 }
 
-async function getProfile(userId) {
-  const { data } = await client.from('profiles').select('*').eq('id', userId).single()
-  return data
+function getProfile(userId) {
+  return client.from('profiles').select('*').eq('id', userId).single().then(function(r){ return r.data })
 }
 
-async function requireAuth(redirectTo = 'login.html') {
-  const session = await getSession()
-  if (!session) { window.location.href = redirectTo; return null }
-  return session
+function requireAuth(redirectTo) {
+  redirectTo = redirectTo || 'login.html'
+  return getSession().then(function(session){
+    if (!session) { window.location.href = redirectTo; return null }
+    return session
+  })
 }
