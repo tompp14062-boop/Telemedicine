@@ -2,7 +2,7 @@
 // TELEMED CONFIG — แก้ค่านี้ให้ตรงกับ Supabase ของคุณ
 // =============================================
 
-const SUPABASE_URL = ''https://iavmvhusigygilxieacu.supabase.co';
+const SUPABASE_URL = 'https://iavmvhusigygilxieacu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_22k37yqbqRt5UjAo10NWCQ_YDo22OSR';
 
 const { createClient } = supabase;
