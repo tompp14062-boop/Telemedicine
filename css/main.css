@@ -709,3 +709,50 @@ textarea.form-control { resize: vertical; }
 
   .login-box h2 { font-size: 1.4rem; }
 }
+
+/* =============================================
+   MOBILE LOGIN LOGO
+   ============================================= */
+.mobile-logo {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 768px) {
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, var(--text), #0a3d56);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .mobile-logo img {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+
+  .mobile-logo div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mobile-logo strong {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.2rem;
+    color: #fff;
+    font-weight: 400;
+  }
+
+  .mobile-logo span {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.03em;
+  }
+}
