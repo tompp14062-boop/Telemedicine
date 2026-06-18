@@ -369,6 +369,7 @@ document.getElementById('capture-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
+async function logout() {
   await client.auth.signOut();
   window.location.href = 'login.html';
 }
