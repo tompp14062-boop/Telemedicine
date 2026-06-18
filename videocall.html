@@ -205,8 +205,9 @@ function loadVideo() {
   const ph = document.getElementById('video-placeholder');
 
   const iframe = document.createElement('iframe');
-  iframe.src = `https://meet.jit.si/telemed-${roomId}`;
-  iframe.allow = 'camera; microphone; fullscreen; display-capture';
+  // เพิ่ม config ปิด membersOnly + jwt disabled
+  iframe.src = `https://meet.jit.si/telemed-${roomId}#config.membersOnly=false&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  iframe.allow = 'camera; microphone; fullscreen; display-capture; autoplay';
   iframe.style.cssText = 'width:100%;height:100%;border:none';
   iframe.onload = () => ph && ph.remove();
 
