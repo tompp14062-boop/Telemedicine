@@ -168,7 +168,11 @@ async function changeStatus(id,status){
   loadData();
 }
 
-function openVideo(roomId){window.open(`videocall.html?room=${roomId||'default'}`);}
+function openVideo(roomId) {
+  // ถ้าไม่มี roomId ให้สร้าง random แทน default
+  const room = roomId || 'room-' + Math.random().toString(36).slice(2, 10);
+  window.open(`videocall.html?room=${room}`);
+}
 
 async function logout(){
   const r=await Swal.fire({icon:'question',title:'ออกจากระบบ?',showCancelButton:true,confirmButtonText:'ออก',cancelButtonText:'ยกเลิก',confirmButtonColor:'#e53e5a'});
