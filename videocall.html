@@ -225,19 +225,36 @@ function subscribeToChat() {
     .subscribe();
 }
 
+let api = null;
+
 function loadVideo() {
-  const box = document.getElementById('video-box');
-  const ph = document.getElementById('video-placeholder');
 
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://meet.jit.si/telemed-${roomId}`;
-  iframe.allow = 'camera; microphone; fullscreen; display-capture';
-  iframe.style.cssText = 'width:100%;height:100%;border:none';
-  iframe.onload = () => ph && ph.remove();
+    const box = document.getElementById('video-box');
 
-  box.appendChild(iframe);
-  document.getElementById('room-display').textContent = `telemed-${roomId}`;
-  document.getElementById('chat-room-tag').textContent = roomId;
+    box.innerHTML = '';
+
+    api = new JitsiMeetExternalAPI(
+        'meet.jit.si',
+        {
+            roomName: `telemed-${roomId}`,
+
+            parentNode: box,
+
+            width: '100%',
+
+            height: '100%',
+
+            userInfo: {
+                displayName: myName
+            }
+        }
+    );
+
+    document.getElementById('room-display').textContent =
+        `telemed-${roomId}`;
+
+    document.getElementById('chat-room-tag').textContent =
+        roomId;
 }
 
 async function copyRoomLink() {
@@ -407,5 +424,6 @@ function closeSidebar(){
   document.getElementById("sidebar-overlay").classList.remove("show");
 }
 </script>
+  <script src="https://meet.jit.si/external_api.js"></script>
 </body>
 </html>
