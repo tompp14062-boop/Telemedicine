@@ -56,11 +56,27 @@
         <h1>📹 วิดีโอคอล</h1>
         <p id="room-label">ห้องปรึกษา: <code id="room-display">—</code></p>
       </div>
-      <div class="flex gap-2">
-        <button class="btn btn-ghost btn-sm" onclick="copyRoomLink()">🔗 คัดลอกลิงก์ห้อง</button>
-        <button class="btn btn-ghost btn-sm" onclick="captureScreen()" id="btn-capture" title="ถ่ายภาพหน้าจอ">📸 Capture</button>
-        <button class="btn btn-danger btn-sm" onclick="endCall()">📵 สิ้นสุดการโทร</button>
-      </div>
+<div class="flex gap-2">
+
+    <button
+        class="btn btn-primary btn-sm"
+        onclick="captureMeeting()">
+        📸 Capture
+    </button>
+
+    <button
+        class="btn btn-ghost btn-sm"
+        onclick="copyRoomLink()">
+        🔗 คัดลอกลิงก์ห้อง
+    </button>
+
+    <button
+        class="btn btn-danger btn-sm"
+        onclick="endCall()">
+        📵 สิ้นสุดการโทร
+    </button>
+
+</div>
     </div>
 
     <div class="videocall-grid">
