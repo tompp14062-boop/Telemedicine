@@ -12,7 +12,7 @@
 
 <!-- Mobile Menu Toggle -->
 <button class="menu-toggle" onclick="toggleSidebar()" id="menuBtn">☰</button>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebaroverlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- Loading Overlay -->
 <div id="loading-overlay">
@@ -541,11 +541,11 @@ async function logout() {
 <script>
 function toggleSidebar(){
   document.querySelector(".sidebar").classList.toggle("open");
-  document.getElementById("sidebar-overlay").classList.toggle("show");
+  document.getElementById("sidebaroverlay").classList.toggle("show");
 }
 function closeSidebar(){
   document.querySelector(".sidebar").classList.remove("open");
-  document.getElementById("sidebar-overlay").classList.remove("show");
+  document.getElementById("sidebaroverlay").classList.remove("show");
 }
 </script>
   <script src="https://meet.jit.si/external_api.js"></script>
