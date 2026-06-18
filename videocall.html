@@ -407,6 +407,114 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
+  async function captureMeeting() {
+
+    if (!api) {
+        Swal.fire(
+            'ไม่พบห้องประชุม',
+            '',
+            'warning'
+        );
+        return;
+    }
+
+    try {
+
+        const screenshot =
+            await api.captureLargeVideoScreenshot();
+
+        const dataURL =
+            screenshot.dataURL;
+
+        const response =
+            await fetch(dataURL);
+
+        const blob =
+            await response.blob();
+
+        const fileName =
+            `${roomId}-${Date.now()}.png`;
+
+        const upload =
+            await client.storage
+                .from('consultation-images')
+                .upload(
+                    fileName,
+                    blob,
+                    {
+                        contentType:
+                            'image/png',
+                        upsert: true
+                    }
+                );
+
+        if (upload.error)
+            throw upload.error;
+
+        const publicUrl =
+            client.storage
+                .from('consultation-images')
+                .getPublicUrl(fileName)
+                .data.publicUrl;
+
+        const saveDb =
+            await client
+                .from(
+                    'consultation_images'
+                )
+                .insert([
+                    {
+                        room_id: roomId,
+                        image_url: publicUrl,
+                        captured_by: myName
+                    }
+                ]);
+
+        if (saveDb.error)
+            throw saveDb.error;
+
+        const a =
+            document.createElement('a');
+
+        a.href = dataURL;
+
+        a.download = fileName;
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        document.body.removeChild(a);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Capture สำเร็จ',
+            html:
+                `
+                <div>
+                  บันทึกลงระบบแล้ว
+                  <br><br>
+                  <a href="${publicUrl}"
+                     target="_blank">
+                     เปิดรูปภาพ
+                  </a>
+                </div>
+                `
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Capture ไม่สำเร็จ',
+            text: err.message
+        });
+
+    }
+}
+
 (async () => {
   showLoading('กำลังเชื่อมต่อห้อง...');
   const session = await requireAuth();
